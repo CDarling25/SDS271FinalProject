@@ -48,14 +48,14 @@ class BLS():
       response_bls = requests.post("https://api.bls.gov/publicAPI/v2/timeseries/data", data=payload, headers=headers)
       print(response_bls.text)
       def error_handling(self, response):
-          if "Series does not exist" in response:
-              print("Error")
-          elif "REQUEST_FAILED" in response:
-              print("Request failed, error 404")
-          else:
-              print("worked")
+          if response["status"] == "REQUEST_FAILED":
+              print("Request failed.")
+              return
+          elif response["status"] == "REQUEST_SUCCEEDED":
+              print("Request succeeded.")
+          return
       error_handling(self, response_bls)
-      return
+      return response_bls
 
 def main():
     test = BLS("food")
