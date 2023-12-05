@@ -32,44 +32,31 @@ class BLS():
         #   if
 
     def get_request(self, api_key, start_year, end_year, series_list):
-        payload = {"seriesid": series_list,
+        headers = {
+            'content-type': 'application/json',
+        }
+        payload = json.dumps({"seriesid": series_list,
                    "startyear": start_year,
                    "endyear": end_year,
                    "catalog": "false",
-                   "registrationkey": f"{api_key}"
-                   }
-        response = requests.post("https://api.bls.gov/publicAPI/v2/timeseries/data", data=payload)
+                   "registrationkey": api_key
+                   })
+        response_bls = requests.post("https://api.bls.gov/publicAPI/v2/timeseries/data", data=payload, headers=headers)
+        print(response_bls.text)
         def error_handling(self, response):
             if "Series does not exist" in response:
                 print("Error")
             elif "REQUEST_FAILED" in response:
                 print("Request failed, error 404")
-                return
-        error_handling(response)
+            else:
+                print("worked")
+        error_handling(self, response_bls)
         return
 
 def main():
     test = BLS("food")
     api_key = test.get_api_key()
     test.set_interest_Series()
-    # can't figure out why it's only returning one series' data
-    payload = {"seriesid":["CUUR0000SA0", "SUUR0000SA0"],
-
-"startyear":"2018",   "endyear":"2018",  "catalog":True,
-
-"calculations":True,  "annualaverage":True, "aspects":True,
-
-"registrationkey":f"{api_key}"}
-
-
-    response = requests.post("https://api.bls.gov/publicAPI/v2/timeseries/data", data = payload)
-
-    print(response.text)
-
-    ip = get('https://api.ipify.org').content.decode('utf8')
-    print('My public IP address is: {}'.format(ip))
-    res = DbIpCity.get(ip, api_key="free")
-    print(f"Location: {res.city}, {res.region}, {res.country}")
-    print(pd.read_csv("cpi_item_codes.csv"))
+    test.get_request(api_key, 2013, 2014, ['CUUR0000SA0','SUUR0000SA0'])
 if __name__=="__main__":
   main()
