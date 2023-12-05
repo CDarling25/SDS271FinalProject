@@ -47,6 +47,7 @@ class BLS():
                   })
       response_bls = requests.post("https://api.bls.gov/publicAPI/v2/timeseries/data", data=payload, headers=headers)
       print(response_bls.text)
+
       def error_handling(self, response):
           if response["status"] == "REQUEST_FAILED":
               print("Request failed.")
@@ -56,6 +57,19 @@ class BLS():
           return
       error_handling(self, response_bls)
       return response_bls
+
+      def summary_stats(self, col_name):
+        min_val = self.data[col_name].min
+        max_val = self.data[col_name].max
+        mean_val = self.data[col_name].mean()
+        std_dev = self.data[col_name].std()
+
+        print("Minimum Value:", min_val)
+        print("Maximum Value:", max_val)
+        print("Mean Value:", mean_val)
+        print("Standard Deviation:", std_dev)
+
+
 
 def main():
     test = BLS("food")
