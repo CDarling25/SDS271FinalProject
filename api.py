@@ -20,6 +20,6 @@ def main():
     print('My public IP address is: {}'.format(ip))
     res = DbIpCity.get(ip, api_key="free")
     print(f"Location: {res.city}, {res.region}, {res.country}")
-
+    print(pd.read_csv("cpi_item_codes.csv"))
 if __name__=="__main__":
   main()
