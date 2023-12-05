@@ -31,18 +31,36 @@ class BLS():
         # for i in range(len(codes)):
         #   if
 
-
+    def get_request(self, api_key, start_year, end_year, series_list):
+        payload = {"seriesid": series_list,
+                   "startyear": start_year,
+                   "endyear": end_year,
+                   "catalog": "false",
+                   "registrationkey": f"{api_key}"
+                   }
+        response = requests.post("https://api.bls.gov/publicAPI/v2/timeseries/data", data=payload)
+        def error_handling(self, response):
+            if "Series does not exist" in response:
+                print("Error")
+            elif "REQUEST_FAILED" in response:
+                print("Request failed, error 404")
+                return
+        error_handling(response)
+        return
 
 def main():
     test = BLS("food")
     api_key = test.get_api_key()
     test.set_interest_Series()
-    payload = {"seriesid": ["CUUR0000SA0", "SUUR0000SA0"],
-            "startyear": "2013",
-            "endyear": "2014",
-            "catalog":"false",
-            "registrationkey": f"{api_key}"
-            }
+    # can't figure out why it's only returning one series' data
+    payload = {"seriesid":["CUUR0000SA0", "SUUR0000SA0"],
+
+"startyear":"2018",   "endyear":"2018",  "catalog":True,
+
+"calculations":True,  "annualaverage":True, "aspects":True,
+
+"registrationkey":f"{api_key}"}
+
 
     response = requests.post("https://api.bls.gov/publicAPI/v2/timeseries/data", data = payload)
 
