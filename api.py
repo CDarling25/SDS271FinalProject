@@ -32,9 +32,9 @@ class BLS():
         series_codes = codes['item_code'].tolist()
         relevant_codes = []
         for i in range(len(descriptions)):
-        if self.interest in descriptions[i]:
-            if "less" not in descriptions[i]:
-                relevant_codes.append(series_codes[i])
+            if self.interest in descriptions[i]:
+                if "less" not in descriptions[i]:
+                    relevant_codes.append(series_codes[i])
         self.interest_Series = relevant_codes
 
     def get_request(self, start_year, end_year, series_list):
