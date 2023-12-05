@@ -48,7 +48,13 @@ class BLS():
                     "registrationkey": self.api_key
                     })
         response_bls = requests.post("https://api.bls.gov/publicAPI/v2/timeseries/data", data=payload, headers=headers)
-        print(response_bls.text)
+        json_data = response_bls.json()
+
+        if 'Results' in json_data and 'series' in json_data['Results']:
+            data_series = json_data['Results']['series']
+            for series in data_series:
+                df = pd.DataFrame(series['data'])
+                self.data = df
 
     def error_handling(self, response):
         if response["status"] == "REQUEST_FAILED":
@@ -80,6 +86,8 @@ def main():
     test.set_interest_Series()
     print(test.interest_Series)
     test.get_request(2013, 2014, ['CUUR0000SA0','SUUR0000SA0'])
+    #print(test.interest_Series)
+    print(test.data)
 
 
 if __name__=="__main__":
