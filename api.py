@@ -20,16 +20,10 @@ class BLS():
         self.api_key = get_api_key(self)
         self.interest = interest
         self.interest_Series = None
-        self.ip = None
         self.location = None
         self.data = None
         self.startyear = None
         self.endyear = None
-
-    def set_location(self):
-        self.ip = get('https://api.ipify.org').content.decode('utf8')
-        self.location = DbIpCity.get(ip, api_key="free")
-        # this method will get the user’s location
 
     def set_interest_Series(self):
         codes = pd.read_csv("cpi_item_codes.csv")
