@@ -23,8 +23,6 @@ class BLS():
         self.ip = None
         self.location = None
         self.data = None
-        self.startyear = None
-        self.endyear = None
 
     def set_location(self):
         self.ip = get('https://api.ipify.org').content.decode('utf8')
@@ -39,12 +37,13 @@ class BLS():
         for i in range(len(descriptions)):
             if self.interest in descriptions[i]:
                 if "less" not in descriptions[i]:
-                    relevant_codes.append(series_codes[i])
+                    series_code = "CUUR0000" + series_codes[i]
+                    relevant_codes.append(series_code)
         self.interest_Series = relevant_codes
 
-    def get_request(self, start_year, end_year, series_list):
-        self.startyear = start_year
-        self.endyear = end_year
+    def get_request(self, start_year, end_year, series_list = None):
+        if series_list is None:
+            series_list = self.interest_Series
         headers = {
             'content-type': 'application/json',
         }
@@ -55,6 +54,7 @@ class BLS():
                               "registrationkey": self.api_key
                               })
         response_bls = requests.post("https://api.bls.gov/publicAPI/v2/timeseries/data", data=payload, headers=headers)
+        print(response_bls.text)
         json_data = response_bls.json()
 
         if 'Results' in json_data and 'series' in json_data['Results']:
@@ -63,9 +63,8 @@ class BLS():
             # store each series as a dataframe in a master list
             for series in data_series:
                 df = pd.DataFrame(series['data'])
-                df=df.iloc[::-1].reset_index(drop=True)
-                df = df.iloc[:, 0:4]
                 df_list.append(df)
+            print(df_list)
             self.data = df_list
 
     def error_handling(self, response):
@@ -91,22 +90,18 @@ class BLS():
     def visualizer(self):
         for index,df in enumerate(self.data):
             df["value"] = pd.to_numeric(df["value"])
-            plt.plot(df["value"])
-            plt.xlabel(f"Month in Time Period {self.startyear} to {self.endyear}")
-            plt.ylabel("Consumer Price Index")
-            plt.title(f"Change in Consumer Price Index of Series {self.interest_Series[index]} Over {self.startyear} to {self.endyear}")
-            plt.show()
+            summary_df = pd.DataFrame({'Series': [self.interest_Series[index]], 'Minimum': [min_val], 'Maximum': [max_val], 'Mean': [mean_val], 'Standard Deviation': [std_dev]})
+            pyplot.plt.plot(df["value"])
+            pyplot.plt.show()
 
 
 def main():
     test = BLS("food")
-    test.set_interest_Series()
+    series_list = test.set_interest_Series()
     print(test.interest_Series)
-    test.get_request(2013, 2014, ['CUUR0000SA0', 'SUUR0000SA0'])
+    test.get_request(2013, 2014)
     # print(test.interest_Series)
-    print(test.data)
     test.summary_stats()
-    test.visualizer()
 
 
 if __name__ == "__main__":
