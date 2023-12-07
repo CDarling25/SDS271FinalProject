@@ -42,6 +42,8 @@ class BLS():
         self.endyear = end_year
         if series_list is None:
             series_list = self.interest_Series
+        else:
+            self.interest_Series = series_list
         headers = {
             'content-type': 'application/json',
         }
@@ -52,7 +54,6 @@ class BLS():
                               "registrationkey": self.api_key
                               })
         response_bls = requests.post("https://api.bls.gov/publicAPI/v2/timeseries/data", data=payload, headers=headers)
-        print(response_bls.text)
         json_data = response_bls.json()
 
         if 'Results' in json_data and 'series' in json_data['Results']:
@@ -61,8 +62,9 @@ class BLS():
             # store each series as a dataframe in a master list
             for series in data_series:
                 df = pd.DataFrame(series['data'])
+                df=df.iloc[::-1].reset_index(drop=True)
+                df = df.iloc[:, 0:4]
                 df_list.append(df)
-            print(df_list)
             self.data = df_list
 
     def error_handling(self, response):
@@ -79,6 +81,7 @@ class BLS():
         return response_bls
 
     def summary_stats(self):
+        print(self.data)
         for index,df in enumerate(self.data):
             df["value"] = pd.to_numeric(df["value"])
             min_val = df["value"].min()
@@ -98,15 +101,3 @@ class BLS():
             plt.show()
 
 
-def main():
-    test = BLS("food")
-    series_list = test.set_interest_Series()
-    print(test.interest_Series)
-    test.get_request(2013, 2014)
-    # print(test.interest_Series)
-    test.summary_stats()
-    test.visualizer()
-
-
-if __name__ == "__main__":
-    main()
