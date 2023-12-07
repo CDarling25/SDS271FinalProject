@@ -1,11 +1,13 @@
-import pandas as pd 
+import pandas as pd
 import requests
 from requests import get
 import json
 from ip2geotools.databases.noncommercial import DbIpCity
 from dotenv import load_dotenv
 import os
-import matplotlib as plt
+import matplotlib.pyplot as plt
+from IPython.display import display
+
 
 class BLS():
     def __init__(self, interest):
@@ -14,18 +16,21 @@ class BLS():
             load_dotenv()
             api_key = os.getenv("API_KEY")
             return api_key
+
         self.api_key = get_api_key(self)
         self.interest = interest
         self.interest_Series = None
         self.ip = None
         self.location = None
         self.data = None
+        self.startyear = None
+        self.endyear = None
 
     def set_location(self):
         self.ip = get('https://api.ipify.org').content.decode('utf8')
         self.location = DbIpCity.get(ip, api_key="free")
         # this method will get the user’s location
-    
+
     def set_interest_Series(self):
         codes = pd.read_csv("cpi_item_codes.csv")
         descriptions = codes['item_name'].tolist()
@@ -38,23 +43,30 @@ class BLS():
         self.interest_Series = relevant_codes
 
     def get_request(self, start_year, end_year, series_list):
+        self.startyear = start_year
+        self.endyear = end_year
         headers = {
             'content-type': 'application/json',
         }
         payload = json.dumps({"seriesid": series_list,
-                    "startyear": start_year,
-                    "endyear": end_year,
-                    "catalog": "false",
-                    "registrationkey": self.api_key
-                    })
+                              "startyear": start_year,
+                              "endyear": end_year,
+                              "catalog": "false",
+                              "registrationkey": self.api_key
+                              })
         response_bls = requests.post("https://api.bls.gov/publicAPI/v2/timeseries/data", data=payload, headers=headers)
         json_data = response_bls.json()
 
         if 'Results' in json_data and 'series' in json_data['Results']:
             data_series = json_data['Results']['series']
+            df_list = []
+            # store each series as a dataframe in a master list
             for series in data_series:
                 df = pd.DataFrame(series['data'])
-                self.data = df
+                df=df.iloc[::-1].reset_index(drop=True)
+                df = df.iloc[:, 0:4]
+                df_list.append(df)
+            self.data = df_list
 
     def error_handling(self, response):
         if response["status"] == "REQUEST_FAILED":
@@ -66,29 +78,36 @@ class BLS():
         error_handling(self, response_bls)
         return response_bls
 
-    def summary_stats(self, col_name):
-        min_val = self.data[col_name].min
-        max_val = self.data[col_name].max
-        mean_val = self.data[col_name].mean()
-        std_dev = self.data[col_name].std()
+    def summary_stats(self):
+        for index,df in enumerate(self.data):
+            df["value"] = pd.to_numeric(df["value"])
+            min_val = df["value"].min()
+            max_val = df["value"].max()
+            mean_val = df["value"].mean()
+            std_dev = df["value"].std()
+            summary_df = pd.DataFrame({'Series': [self.interest_Series[index]], 'Minimum': [min_val], 'Maximum': [max_val], 'Mean': [mean_val], 'Standard Deviation': [std_dev]})
+            display(summary_df)
 
-        print("Minimum Value:", min_val)
-        print("Maximum Value:", max_val)
-        print("Mean Value:", mean_val)
-        print("Standard Deviation:", std_dev)
-  
-    def visualizer(self, x_var, y_var):
-        plt.plot(x_var, y_var)
-        plt.show()
+    def visualizer(self):
+        for index,df in enumerate(self.data):
+            df["value"] = pd.to_numeric(df["value"])
+            plt.plot(df["value"])
+            plt.xlabel(f"Month in Time Period {self.startyear} to {self.endyear}")
+            plt.ylabel("Consumer Price Index")
+            plt.title(f"Change in Consumer Price Index of Series {self.interest_Series[index]} Over {self.startyear} to {self.endyear}")
+            plt.show()
+
 
 def main():
     test = BLS("food")
     test.set_interest_Series()
     print(test.interest_Series)
-    test.get_request(2013, 2014, ['CUUR0000SA0','SUUR0000SA0'])
-    #print(test.interest_Series)
+    test.get_request(2013, 2014, ['CUUR0000SA0', 'SUUR0000SA0'])
+    # print(test.interest_Series)
     print(test.data)
+    test.summary_stats()
+    test.visualizer()
 
 
-if __name__=="__main__":
-  main()
+if __name__ == "__main__":
+    main()
