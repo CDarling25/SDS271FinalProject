@@ -23,6 +23,8 @@ class BLS():
         self.ip = None
         self.location = None
         self.data = None
+        self.startyear = None
+        self.endyear = None
 
     def set_location(self):
         self.ip = get('https://api.ipify.org').content.decode('utf8')
@@ -42,6 +44,8 @@ class BLS():
         self.interest_Series = relevant_codes
 
     def get_request(self, start_year, end_year, series_list = None):
+        self.startyear = start_year
+        self.endyear = end_year
         if series_list is None:
             series_list = self.interest_Series
         headers = {
@@ -104,6 +108,7 @@ def main():
     test.get_request(2013, 2014)
     # print(test.interest_Series)
     test.summary_stats()
+    test.visualizer()
 
 
 if __name__ == "__main__":
