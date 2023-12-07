@@ -90,9 +90,11 @@ class BLS():
     def visualizer(self):
         for index,df in enumerate(self.data):
             df["value"] = pd.to_numeric(df["value"])
-            summary_df = pd.DataFrame({'Series': [self.interest_Series[index]], 'Minimum': [min_val], 'Maximum': [max_val], 'Mean': [mean_val], 'Standard Deviation': [std_dev]})
-            pyplot.plt.plot(df["value"])
-            pyplot.plt.show()
+            plt.plot(df["value"])
+            plt.xlabel(f"Month in Time Period {self.startyear} to {self.endyear}")
+            plt.ylabel("Consumer Price Index")
+            plt.title(f"Change in Consumer Price Index of Series {self.interest_Series[index]} Over {self.startyear} to {self.endyear}")
+            plt.show()
 
 
 def main():
