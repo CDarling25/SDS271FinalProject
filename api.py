@@ -69,6 +69,9 @@ class BLS():
         if response["status"] == "REQUEST_FAILED":
             print("Request failed.")
             return
+        elif response["status"] == "REQUEST_NOT_PROCESSED":
+            print("Request not processed. You may have reached your daily limit of requests for the day.")
+            return
         elif response["status"] == "REQUEST_SUCCEEDED":
             print("Request succeeded.")
         return
