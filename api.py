@@ -12,7 +12,6 @@ from IPython.display import display
 class BLS():
     def __init__(self, interest):
         def get_api_key(self):
-            # instruct user to make .env file to store in format API_KEY=29374af23 first. Then run this function automatically upon instantiation of class
             load_dotenv()
             api_key = os.getenv("API_KEY")
             return api_key
@@ -27,9 +26,11 @@ class BLS():
 
     def set_interest_Series(self):
         codes = pd.read_csv("cpi_item_codes.csv")
+        # item_name contains information on topic of series
         descriptions = codes['item_name'].tolist()
         series_codes = codes['item_code'].tolist()
         relevant_codes = []
+        # store series codes with topics relevant to user interest into list
         for i in range(len(descriptions)):
             if self.interest in descriptions[i]:
                 if "less" not in descriptions[i]:
@@ -40,6 +41,7 @@ class BLS():
     def get_request(self, start_year, end_year, series_list = None):
         self.startyear = start_year
         self.endyear = end_year
+        # if-else statement sets series list to relevant series of interest, or, if user specifies series manually, sets series list to specified series
         if series_list is None:
             series_list = self.interest_Series
         else:
@@ -81,7 +83,6 @@ class BLS():
         return response_bls
 
     def summary_stats(self):
-        print(self.data)
         for index,df in enumerate(self.data):
             df["value"] = pd.to_numeric(df["value"])
             min_val = df["value"].min()
